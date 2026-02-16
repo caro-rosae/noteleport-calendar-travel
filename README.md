@@ -1,167 +1,217 @@
-# NoTeleport — Calendar Travel Generator
+![Version](https://img.shields.io/badge/version-v0.1.0-blue)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Made with Apps Script](https://img.shields.io/badge/Made%20with-Google%20Apps%20Script-blue)
+![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-brightgreen)
+<p align="center">
+   <source media="(prefers-color-scheme: dark)" srcset="assets/NoTeleport-banner.png">
+ <source media="(prefers-color-scheme: light)" srcset="assets/NoTeleport-banner.png">
+  <img src="assets/NoTeleport-banner.png" width="100%">
+</p>
 
-Automatic travel time for Google Calendar events using **Google Apps Script**, with an optional **Chrome companion extension** for settings + language selection.
-
-> “Every schedule assumes teleportation until proven otherwise.”  
-> — someone, probably once
-
----
+# NoTeleport — Google Calendar Travel Automation
 
 ## Why this exists
 
-Calendars are great at showing **intentions**.
-They’re not great at showing **transitions**: travel, buffer, parking, context switching.
 
-This project was built to reduce cognitive load (especially with ADHD), by making your calendar reflect **reality**.
+> “Every schedule assumes teleportation until proven otherwise.”
+> — someone, probably once
+
+Until owning my own TARDIS, I created this tool to automatically generate travel time in my calendar.
+With buffers depending on time of travel, with return travels, gaps, and all the good things one might need to make it sustainable and useful since gCal doesn't have this option natively.
 
 ---
 
 ## What it does
+* [Travel event generation](#travel-event-generation)
+* [Smart scheduling logic](#smart-scheduling-logic)
+* [Automatic updates](#automatic-updates)
+* [Clean up reliability](#cleanup--reliability)
+* [Multilingual support](#multilingual-support)
 
-For each event in your selected calendars that has a **location**, NoTeleport creates separate travel events in a dedicated calendar.
+### Travel event generation
 
-It can:
-- Create a **travel-to** event before each appointment
-- Create a **return travel** event after the appointment (only if you’re not chaining into a next event)
-- **Chain** consecutive events: travel starts from the previous location (not home) if events are close in time
-- Add a **dynamic buffer**
-- Avoid duplicates (safe to run repeatedly)
-- Reduce Maps quota usage (cache + persistence + throttle + cooldown)
+NoTeleport automatically creates travel events in a dedicated calendar.
 
----
+```
+13:25  Travel → Lesson
+14:00  Lesson
+15:00  Return travel ← Lesson
+```
 
-## Multilingual (FR / EN / DE / ES)
+Features:
 
-### 1) Travel event language
-Titles/descriptions for travel events are localized.
-
-### 2) Travel calendar name is localized too (by default)
-By default the travel calendar name depends on the selected language:
-- FR: `TRAJET`
-- EN: `TRAVEL`
-- DE: `FAHRT`
-- ES: `TRASLADO`
-
-You can override it in settings if you want a custom name.
+* travel-to events before appointments
+* return travel after appointments
+* configurable gaps so events never touch
 
 ---
 
-## Repository structure
+### Smart scheduling logic
 
-- `apps-script/`
-  - `TravelGenerator.gs` — main automation (includes settings sync)
-  - `WebApp.gs` — mini API for the extension (settings/status/run)
-  - `lang/` — optional “one file per language” versions (defaults)
-- `chrome-extension/`
-  - Chrome MV3 extension with a beginner-friendly options page
-  - `_locales/` — FR/EN/DE/ES translations
-- `docs/`
-  - step-by-step guides
+NoTeleport understands real schedules.
+
+* detects back-to-back events
+* chains travel between locations
+* uses your home address as fallback
+* adds dynamic buffer time
 
 ---
 
-# Setup — Apps Script (beginner-friendly, step-by-step)
+### Automatic updates
 
-## Step 0 — You need
-- A Google account
-- Google Calendar
-- A desktop browser (Chrome recommended)
+Travel events stay synchronized.
 
-## Step 1 — Create (or choose) your travel calendar
-You **do not need** to create it manually:
-- the script will create it automatically using the localized default name (`TRAJET`, `TRAVEL`, `FAHRT`, `TRASLADO`)
-- or it will use the calendar name you set in settings
-
-If you prefer creating it manually: create a new calendar in Google Calendar with your chosen name.
-
-## Step 2 — Create the Apps Script project
-1. Open: https://script.google.com
-2. Click **New project**
-3. In the left sidebar, click **Files**.
-4. Create **two** files:
-   - `TravelGenerator.gs` (copy/paste from `apps-script/TravelGenerator.gs`)
-   - `WebApp.gs` (copy/paste from `apps-script/WebApp.gs`)
-
-## Step 3 — Set your API key (required for the extension)
-1. In Apps Script, click **Project Settings** (gear icon).
-2. Scroll to **Script Properties**.
-3. Click **Add script property**:
-   - Name: `API_KEY`
-   - Value: choose a long random string (example: `noteleport_7f9c...`)
-
-## Step 4 — Run once to authorize permissions
-1. Select the function `syncTrajets` in the top dropdown.
-2. Click **Run**.
-3. Google will ask permissions:
-   - Calendar access
-   - Maps service access
-4. Accept permissions.
-
-## Step 5 — Add the automation trigger (recommended)
-1. In Apps Script left sidebar: click **Triggers** (clock icon).
-2. Click **Add Trigger**
-3. Configure:
-   - Choose which function to run: `syncTrajets`
-   - Select event source: `Time-driven`
-   - Select type: `Minutes timer`
-   - Interval: `Every 15 minutes`
-4. Save
+* changing event time updates travel
+* changing location updates travel
+* large calendar moves still work
+* duplicates are prevented
 
 ---
 
-# Setup — Web App (required for extension + settings sync)
+### Cleanup & reliability
 
-1. In Apps Script, click **Deploy** (top right)
-2. Choose **New deployment**
-3. Select **Web app**
-4. Settings:
-   - Execute as: **Me**
-   - Who has access: **Anyone with the link**
-5. Click **Deploy**
-6. Copy the **Web App URL** (you will paste it into the extension)
+NoTeleport keeps the travel calendar clean.
+
+* orphan travel events are removed automatically
+* event linking survives time changes
+* Maps calls are cached and throttled
 
 ---
 
-# Setup — Chrome extension (beginner-friendly)
+### Multilingual support
 
-## Step 1 — Load the extension locally
-1. Open Chrome
-2. Go to: `chrome://extensions`
-3. Enable **Developer mode** (top right)
-4. Click **Load unpacked**
-5. Select the folder: `chrome-extension/`
+Generated travel events support:
 
-## Step 2 — Configure it
-1. Find the extension and click **Details**
-2. Click **Extension options**
-3. Fill:
-   - Web App URL (from Apps Script deployment)
-   - API key (Script property `API_KEY`)
-   - Choose Language (FR/EN/DE/ES)
-   - Set your HOME address and calendars
-4. Click **Save**
-   - This saves locally AND pushes settings into Apps Script (settings sync)
+* French
+* English
+* German
+* Spanish
 
-## Step 3 — Run manually once (optional)
-Click **Run now** in the extension popup or options page.
+The travel calendar name is localized automatically.
+
+---
+
+## Example
+
+Instead of this:
+
+```
+14:00 — Rehearsal
+```
+
+You get this:
+
+```
+13:20 — Travel → Rehearsal
+14:00 — Rehearsal
+16:00 — Return travel ← Rehearsal
+```
+
+---
+
+## Setup (Apps Script)
+
+<details>
+<summary>Click to expand step-by-step setup</summary>
+
+### Create the script project
+
+Open:
+https://script.google.com
+
+Create a new project named:
+
+```
+NoTeleport
+```
+
+Add two files:
+
+```
+TravelGenerator.gs
+WebApp.gs
+```
+
+Paste the code from the repository.
+
+---
+
+### Add API key
+
+Project Settings → Script properties
+
+```
+API_KEY = noteleport_test_key
+```
+
+---
+
+### Run once to authorize
+
+Run:
+
+```
+syncTrajets()
+```
+
+Allow Calendar and Maps permissions.
+
+---
+
+### Add trigger
+
+Triggers → Add trigger
+
+```
+syncTrajets
+Time-driven
+Every 15 minutes
+```
+
+</details>
+
+---
+
+## Chrome companion extension (optional)
+
+The extension provides:
+
+* settings UI
+* language selection
+* run button
+* parameter sync
+
+Load via:
+
+```
+chrome://extensions
+```
+
+Enable Developer Mode → Load unpacked → `chrome-extension/`.
+
+---
+
+## Design philosophy
+
+This project is intentionally:
+
+* small
+* readable
+* hackable
+* local-first
+* free
+
+Automation should reduce friction, not add complexity.
 
 ---
 
 ## License
-MIT — see `LICENSE`.
+
+MIT
 
 ---
 
-## Support (optional)
-If this project saves you time/stress, you can add a tip jar:
-- GitHub Sponsors
-- Ko-fi / Buy Me a Coffee
+## Author
 
-(Completely optional — the project stays free and open.)
+Caroline
 
----
-
-## Roadmap
-- publish-ready Chrome Web Store package (still free)
-- optional public transport mode
-- more robust log/status page
