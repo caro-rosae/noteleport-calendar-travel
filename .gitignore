@@ -1,0 +1,9 @@
+# Apps Script local tooling (optional)
+.clasp.json
+
+# Node / extension build (optional)
+node_modules/
+dist/
+
+# OS
+.DS_Store
